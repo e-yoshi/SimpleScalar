@@ -84,6 +84,9 @@ static counter_t sim_num_refs = 0;
 /* maximum number of inst's to execute */
 static unsigned int max_insts;
 
+/* number of cycles taken to execute program %%%% */
+static counter_t sim_clock_cycles = 0;
+
 /* register simulator-specific options */
 void
 sim_reg_options(struct opt_odb_t *odb)
@@ -126,6 +129,10 @@ sim_reg_stats(struct stat_sdb_t *sdb)
     stat_reg_formula(sdb, "sim_inst_rate",
                      "simulation speed (in insts/sec)",
                      "sim_num_insn / sim_elapsed_time", NULL);
+    /* Adding reporting of clock cycles */
+    stat_reg_counter(sdb, "sim_clock_cycles",
+                     "Total number of clock cycles elapsed",
+                     &sim_clock_cycles, sim_clock_cycles, NULL);
     ld_reg_stats(sdb);
     mem_reg_stats(mem, sdb);
 }
@@ -177,7 +184,6 @@ sim_uninit(void)
 {
     /* nada */
 }
-
 
 /*
  * configure the execution engine
@@ -281,6 +287,7 @@ sim_main(void)
     
     while (TRUE)
     {
+        sim_clock_cycles++;
         /* maintain $r0 semantics */
         regs.regs_R[MD_REG_ZERO] = 0;
 #ifdef TARGET_ALPHA
